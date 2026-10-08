@@ -47,7 +47,7 @@ static NSDictionary *CompilerCheck(void) {
                            CheckMapping(0x9F800000u, (size_t)sysconf(_SC_PAGESIZE)),
                            CheckMapping(0xC0000000u, (size_t)sysconf(_SC_PAGESIZE))];
     uintptr_t function = (uintptr_t)&CheckMapping;
-    self.report = @{@"probe_version": @1, @"is_game": @NO,
+    self.report = @{@"probe_version": @2, @"is_game": @NO,
         @"system_version": UIDevice.currentDevice.systemVersion,
         @"device_model": UIDevice.currentDevice.model,
         @"native_pointer_bytes": @(sizeof(void *)),
@@ -57,7 +57,7 @@ static NSDictionary *CompilerCheck(void) {
         @"runtime_code_patching": @"Not attempted. The engine needs static dispatch on iOS.",
         @"scope": @"Compatibility diagnostics only. No game engine or disc included."};
     NSMutableString *text = [NSMutableString stringWithString:
-        @"PREMIER ESSAI iOS\n\nCette application vérifie les obstacles au portage. Elle ne lance pas encore le jeu.\n\n"];
+        @"DEUXIEME ESSAI iOS — COMPILATEUR RECENT\n\nCette application vérifie les obstacles au portage. Elle ne lance pas encore le jeu.\n\n"];
     [text appendFormat:@"iOS : %@\nPointeurs natifs : %zu octets\nCompilateur compatible avec les pointeurs 32 bits : %@\n\n",
         UIDevice.currentDevice.systemVersion, sizeof(void *),
         [CompilerCheck()[@"supported"] boolValue] ? @"oui" : @"non"];

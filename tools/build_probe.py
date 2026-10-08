@@ -17,12 +17,23 @@ def build():
     compiler=run(['xcrun','--find','clang'])
     if compiler.returncode:raise SystemExit(compiler.stdout)
     sdk=sdk.stdout.strip();cc=compiler.stdout.strip()
+    pointer_cc=os.environ.get('LEKAK_POINTER_CC',cc)
+    version=run([pointer_cc,'--version'])
+    if version.returncode: raise SystemExit(version.stdout)
     destination=ROOT/'build';destination.mkdir(exist_ok=True)
     flags=['-target','arm64-apple-ios15.0','-isysroot',sdk]
-    check=run([cc,*flags,'-fms-extensions','-O2','-c',str(ROOT/'App/ptr32_check.c'),'-o',str(destination/'ptr32.o')])
+    check=run([pointer_cc,*flags,'-fms-extensions','-O2','-c',str(ROOT/'App/ptr32_check.c'),'-o',str(destination/'ptr32.o')])
     result={'supported':check.returncode==0,'exit_code':check.returncode,
-            'compiler':run([cc,'--version']).stdout.strip(),'log':check.stdout,
+            'compiler':version.stdout.strip(),'log':check.stdout,
             'test':'Eight-byte record with two G32 pointers, native-to-G32 stores, and G32 callback invocation.'}
+    result['app_compiler']=run([cc,'--version']).stdout.strip()
+    result['engine_header']='Original src/port_ptr.h; stored pointer layout, field offset, indexed store, byte load/store and callback lowering checked.'
+    if check.returncode==0:
+        ir=run([pointer_cc,*flags,'-fms-extensions','-O2','-S','-emit-llvm',str(ROOT/'App/ptr32_check.c'),'-o',str(destination/'ptr32-ios.ll')])
+        result['ir_exit_code']=ir.returncode
+        result['ir_log']=ir.stdout
+    linux=run([pointer_cc,'-target','aarch64-unknown-linux-gnu','-fms-extensions','-O2','-ffreestanding','-c',str(ROOT/'App/ptr32_check.c'),'-o',str(destination/'ptr32-linux.o')])
+    result['linux_control']={'supported':linux.returncode==0,'log':linux.stdout}
     (destination/'compiler-check.json').write_text(json.dumps(result,indent=2))
     app=destination/'Payload/LekakProbe.app'
     app.mkdir(parents=True,exist_ok=True)
